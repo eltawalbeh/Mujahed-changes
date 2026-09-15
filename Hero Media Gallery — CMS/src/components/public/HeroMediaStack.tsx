@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 
 type Props = {
   images: string[]
@@ -21,18 +21,47 @@ export default function HeroMediaStack({ images }: Props) {
     [images],
   )
   const [order, setOrder] = useState<number[]>([0, 1, 2])
+  const [paused, setPaused] = useState(false)
+  const pointerStart = useRef<{ x: number; y: number; active: boolean }>({ x: 0, y: 0, active: false })
 
   useEffect(() => {
     setOrder([0, 1, 2])
   }, [normalized.length])
 
+  const rotate = (direction: 1 | -1) => {
+    setOrder((current) => direction === 1
+      ? [current[2], current[0], current[1]]
+      : [current[1], current[2], current[0]])
+  }
+
   useEffect(() => {
-    if (normalized.length < 2) return
-    const timer = window.setInterval(() => {
-      setOrder((current) => [current[2], current[0], current[1]])
-    }, 4200)
+    if (normalized.length < 2 || paused) return
+    const timer = window.setInterval(() => rotate(1), 5200)
     return () => window.clearInterval(timer)
-  }, [normalized.length])
+  }, [normalized.length, paused])
+
+  const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+    pointerStart.current = { x: event.clientX, y: event.clientY, active: true }
+    event.currentTarget.setPointerCapture?.(event.pointerId)
+    setPaused(true)
+  }
+
+  const onPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!pointerStart.current.active) return
+    const deltaX = event.clientX - pointerStart.current.x
+    const deltaY = event.clientY - pointerStart.current.y
+    pointerStart.current.active = false
+    setPaused(false)
+
+    if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) return
+    rotate(deltaX < 0 ? 1 : -1)
+  }
+
+  const onPointerCancel = () => {
+    pointerStart.current.active = false
+    setPaused(false)
+  }
 
   if (!normalized.length) {
     return (
@@ -49,7 +78,19 @@ export default function HeroMediaStack({ images }: Props) {
   }
 
   return (
-    <div className="relative mx-auto hidden h-[430px] w-full max-w-[500px] lg:block" aria-hidden="true">
+    <div
+      className="relative mx-auto hidden h-[430px] w-full max-w-[500px] select-none touch-pan-y cursor-grab lg:block active:cursor-grabbing"
+      aria-hidden="true"
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+      onPointerLeave={(event) => {
+        if (event.pointerType === 'mouse' && !pointerStart.current.active) setPaused(false)
+      }}
+      onPointerEnter={(event) => {
+        if (event.pointerType === 'mouse') setPaused(true)
+      }}
+    >
       {[0, 1, 2].map((position) => {
         const imageIndex = order[position]
         const image = normalized[imageIndex]
@@ -57,9 +98,9 @@ export default function HeroMediaStack({ images }: Props) {
         return (
           <div
             key={imageIndex}
-            className={`${positionClasses[position]} overflow-hidden bg-[var(--color-bg)] transition-all duration-1000 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-90'}`}
+            className={`${positionClasses[position]} overflow-hidden bg-[var(--color-bg)] transition-[left,right,top,bottom,transform,opacity] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${isVisible ? 'opacity-100' : 'opacity-90'}`}
           >
-            {image ? <img src={image} alt="" className="h-full w-full object-cover" /> : null}
+            {image ? <img src={image} alt="" draggable={false} className="h-full w-full object-cover" /> : null}
           </div>
         )
       })}
