@@ -5,14 +5,14 @@ type Props = {
 }
 
 const positionClasses = [
-  'absolute left-0 top-16 z-10 h-[300px] w-[300px] rotate-[-7deg] rounded-[42px] object-cover shadow-[0_24px_70px_rgba(29,23,20,.08)]',
-  'absolute bottom-0 right-2 z-20 h-[265px] w-[250px] rotate-[6deg] rounded-[36px] object-cover shadow-[0_24px_70px_rgba(29,23,20,.08)]',
-  'absolute left-20 top-0 z-30 h-[330px] w-[300px] rotate-0 rounded-[42px] object-cover shadow-[0_24px_70px_rgba(29,23,20,.12)]',
+  'absolute left-0 top-12 z-10 h-[190px] w-[190px] rotate-[-7deg] rounded-[30px] object-cover shadow-[0_24px_70px_rgba(29,23,20,.08)] sm:top-14 sm:h-[240px] sm:w-[240px] sm:rounded-[36px] lg:top-16 lg:h-[300px] lg:w-[300px] lg:rounded-[42px]',
+  'absolute bottom-0 right-0 z-20 h-[170px] w-[165px] rotate-[6deg] rounded-[28px] object-cover shadow-[0_24px_70px_rgba(29,23,20,.08)] sm:right-2 sm:h-[210px] sm:w-[200px] sm:rounded-[32px] lg:h-[265px] lg:w-[250px] lg:rounded-[36px]',
+  'absolute left-10 top-0 z-30 h-[210px] w-[190px] rotate-0 rounded-[30px] object-cover shadow-[0_24px_70px_rgba(29,23,20,.12)] sm:left-16 sm:h-[270px] sm:w-[245px] sm:rounded-[36px] lg:left-20 lg:h-[330px] lg:w-[300px] lg:rounded-[42px]',
 ]
 
 const emptyClasses = [
-  'absolute left-0 top-16 z-10 h-[300px] w-[300px] rotate-[-7deg] rounded-[42px] bg-[var(--color-bg)]',
-  'absolute bottom-0 right-2 z-20 h-[265px] w-[250px] rotate-[6deg] rounded-[36px] border border-[var(--color-border)] bg-[#EEE1D2]',
+  'absolute left-0 top-12 z-10 h-[190px] w-[190px] rotate-[-7deg] rounded-[30px] bg-[var(--color-bg)] sm:top-14 sm:h-[240px] sm:w-[240px] sm:rounded-[36px] lg:top-16 lg:h-[300px] lg:w-[300px] lg:rounded-[42px]',
+  'absolute bottom-0 right-0 z-20 h-[170px] w-[165px] rotate-[6deg] rounded-[28px] border border-[var(--color-border)] bg-[#EEE1D2] sm:right-2 sm:h-[210px] sm:w-[200px] sm:rounded-[32px] lg:h-[265px] lg:w-[250px] lg:rounded-[36px]',
 ]
 
 export default function HeroMediaStack({ images }: Props) {
@@ -65,11 +65,11 @@ export default function HeroMediaStack({ images }: Props) {
 
   if (!normalized.length) {
     return (
-      <div className="relative mx-auto hidden h-[430px] w-full max-w-[500px] lg:block" aria-hidden="true">
+      <div className="relative mx-auto h-[300px] w-full max-w-[500px] sm:h-[360px] lg:h-[430px]" aria-hidden="true">
         {emptyClasses.map((className) => <div key={className} className={className} />)}
-        <div className="absolute left-20 top-0 z-30 grid h-[330px] w-[300px] place-items-center rounded-[42px] border border-[var(--color-border)] bg-[var(--color-text-muted)] shadow-[0_24px_70px_rgba(29,23,20,.12)]">
+        <div className="absolute left-10 top-0 z-30 grid h-[210px] w-[190px] place-items-center rounded-[30px] sm:left-16 sm:h-[270px] sm:w-[245px] sm:rounded-[36px] lg:left-20 lg:h-[330px] lg:w-[300px] lg:rounded-[42px] border border-[var(--color-border)] bg-[var(--color-text-muted)] shadow-[0_24px_70px_rgba(29,23,20,.12)]">
           <div className="text-center text-[var(--color-surface)]">
-            <span className="block text-[84px] font-bold leading-none">ش</span>
+            <span className="block text-[60px] font-bold leading-none sm:text-[72px] lg:text-[84px]">ش</span>
             <span className="mt-5 block text-sm tracking-[.18em]">حلويات · كيك · معجنات</span>
           </div>
         </div>
