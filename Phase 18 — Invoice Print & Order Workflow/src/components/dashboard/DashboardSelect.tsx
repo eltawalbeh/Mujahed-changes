@@ -1,0 +1,3 @@
+import type { SelectHTMLAttributes } from 'react'
+import { CaretDown } from '@phosphor-icons/react'
+export default function DashboardSelect({ className='', children, ...props }: SelectHTMLAttributes<HTMLSelectElement>) { return <span className={'relative block '+className}><select {...props} className="h-11 w-full appearance-none rounded-xl border border-[var(--color-border)] bg-white py-2 pr-3 pl-10 text-right text-sm font-medium text-[var(--color-text)] outline-none transition-colors focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/15">{children}</select><CaretDown aria-hidden="true" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" /></span> }
