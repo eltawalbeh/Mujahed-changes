@@ -247,13 +247,6 @@ export default function ContentManagementPage() {
     setSaved(false)
   }
 
-  const setLocale = (nextLocale: CmsLocale) => {
-    const next = new URLSearchParams(searchParams)
-    next.set('page', selected)
-    next.set('lang', nextLocale)
-    setSearchParams(next)
-  }
-
   const setPage = (pageKey: SitePageKey) => {
     const next = new URLSearchParams(searchParams)
     next.set('page', pageKey)
@@ -277,7 +270,7 @@ export default function ContentManagementPage() {
   }
 
   return (
-    <main className="p-4 lg:p-8">
+    <main className="p-4 lg:p-8"><div className="sticky top-[112px] z-10 mb-6 flex items-center justify-between gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/95 p-4 shadow-sm backdrop-blur" dir={locale === "en" ? "ltr" : "rtl"}><div><h2 className="font-bold">{dashboardText(locale, "title.content")}</h2><p className="text-xs text-[var(--color-text-muted)]">{dashboardText(locale, "cms.saveHint")}</p></div><div className="flex gap-2"><Button variant="ghost" onClick={() => void load(true)}>{locale === "en" ? "Reset" : "تراجع"}</Button><Button disabled={saving} onClick={() => void save()}>{saving ? dashboardText(locale, "common.saving") : dashboardText(locale, "common.save")}</Button></div></div>
       <div className="mb-6 flex flex-col gap-2 text-right">
         <h2 className="text-2xl font-bold">إدارة محتوى الموقع</h2>
         <p className="text-sm text-[var(--color-text-muted)]">{dashboardText(locale,'cms.websiteContent')}</p>
