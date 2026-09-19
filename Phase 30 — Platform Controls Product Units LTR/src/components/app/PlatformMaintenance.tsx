@@ -1,0 +1,6 @@
+import { useEffect, useState, type ReactNode } from 'react'
+import { getPublicPlatformStatus } from '@/data/platform'
+
+function Notice({title,body}:{title:string;body:string}){return <main className="grid min-h-screen place-items-center bg-[var(--color-bg)] p-5 text-center" dir="rtl"><section className="max-w-md rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 shadow-sm"><div className="mx-auto grid size-14 place-items-center rounded-full bg-[var(--color-bg)] text-2xl">⌛</div><h1 className="mt-5 text-2xl font-bold">{title}</h1><p className="mt-3 leading-7 text-[var(--color-text-muted)]">{body}</p></section></main>}
+export function PublicPlatformGate({children}:{children:ReactNode}){const[enabled,setEnabled]=useState<boolean|null>(null);useEffect(()=>{void getPublicPlatformStatus().then(x=>setEnabled(x.websiteEnabled))},[]);if(enabled===false)return <Notice title="الموقع تحت الصيانة" body="نعمل على تحسين التجربة حالياً. يرجى العودة لاحقاً."/>;return <>{children}</>}
+export function AppPlatformGate({children}:{children:ReactNode}){const[enabled,setEnabled]=useState<boolean|null>(null);useEffect(()=>{void getPublicPlatformStatus().then(x=>setEnabled(x.appEnabled))},[]);if(enabled===false)return <Notice title="التطبيق غير متاح مؤقتاً" body="تم إيقاف الوصول التشغيلي مؤقتاً. يرجى التواصل مع مدير النظام."/>;return <>{children}</>}
