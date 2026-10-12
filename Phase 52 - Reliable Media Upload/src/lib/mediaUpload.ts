@@ -8,9 +8,10 @@ export async function uploadDashboardMedia(file: File, folder: string) {
   body.set('file', file)
   body.set('folder', folder)
   const baseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://hqvxhhhwzhefydvwlpje.supabase.co'
+  const publishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_BnJGRB4zHFXelhpi-NFtuQ_KqKppb7o'
   const response = await fetch(`${baseUrl}/functions/v1/make-server-146e5e37/media-upload`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+    headers: { Authorization: `Bearer ${sessionData.session.access_token}`, apikey: publishableKey },
     body,
   })
   const data = await response.json().catch(() => null)
