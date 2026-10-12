@@ -46,6 +46,9 @@ app.post("/make-server-146e5e37/media-upload", async (c) => {
     if (!currentBucket) {
       const { error } = await admin.storage.createBucket(MEDIA_BUCKET, { public: true, fileSizeLimit: MEDIA_MAX_SIZE, allowedMimeTypes: [...MEDIA_TYPES] });
       if (error && !/already exists/i.test(error.message)) throw error;
+    } else {
+      const { error } = await admin.storage.updateBucket(MEDIA_BUCKET, { public: true, fileSizeLimit: MEDIA_MAX_SIZE, allowedMimeTypes: [...MEDIA_TYPES] });
+      if (error) throw error;
     }
 
     const folder = (typeof inputFolder === "string" ? inputFolder : "uploads").replace(/[^a-zA-Z0-9/_-]/g, "").replace(/^\/+|\/+$/g, "") || "uploads";
