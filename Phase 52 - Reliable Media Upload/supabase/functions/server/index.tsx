@@ -8,7 +8,7 @@ const MEDIA_MAX_SIZE = 25 * 1024 * 1024;
 const MEDIA_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"]);
 
 app.use('*', logger(console.log));
-app.use("/*", cors({ origin: "*", allowHeaders: ["Content-Type", "Authorization"], allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], exposeHeaders: ["Content-Length"], maxAge: 600 }));
+app.use("/*", cors({ origin: "*", allowHeaders: ["Content-Type", "Authorization", "apikey"], allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], exposeHeaders: ["Content-Length"], maxAge: 600 }));
 
 app.get("/make-server-146e5e37/health", (c) => c.json({ status: "ok" }));
 
