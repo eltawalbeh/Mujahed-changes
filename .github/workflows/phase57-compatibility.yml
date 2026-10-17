@@ -1,0 +1,32 @@
+name: Phase 57 Product Visibility Bundle Build
+on:
+  push:
+    branches:
+      - phase-57-product-visibility-bulk-actions
+  pull_request:
+    paths:
+      - 'Phase 57 - Product Visibility and Bulk Actions/**'
+      - '.github/workflows/phase57-compatibility.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: eltawalbeh/ChefMujahed
+          path: app
+      - run: cp -R "Phase 57 - Product Visibility and Bulk Actions/src/." app/src/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+        working-directory: app
+      - name: TypeScript audit (existing baseline errors)
+        working-directory: app
+        continue-on-error: true
+        run: pnpm exec tsc --noEmit
+      - name: Build frontend
+        working-directory: app
+        run: pnpm build
