@@ -1,0 +1,32 @@
+name: Phase 58 SKU Bundle Build
+on:
+  push:
+    branches: [phase-58-automatic-product-sku]
+  pull_request:
+    paths:
+      - 'Phase 58 - Automatic Product SKU/**'
+      - '.github/workflows/phase58-sku-compatibility.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: eltawalbeh/ChefMujahed
+          path: app
+      - name: Apply 6 frontend replacement files
+        run: cp -R "Phase 58 - Automatic Product SKU/src/." app/src/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+        working-directory: app
+      - name: TypeScript audit (legacy project errors)
+        working-directory: app
+        continue-on-error: true
+        run: pnpm exec tsc --noEmit
+      - name: Production Vite build
+        working-directory: app
+        run: pnpm build
