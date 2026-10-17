@@ -1,0 +1,37 @@
+name: Phase 54 catalog RTL bundle build
+on:
+  push:
+    branches:
+      - phase-54-catalog-rtl-reliability
+  pull_request:
+    paths:
+      - 'Phase 54 - Catalog Loading and RTL Hotfix/**'
+      - '.github/workflows/phase54-compatibility.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: eltawalbeh/ChefMujahed
+          path: app
+      - run: cp -R "Phase 54 - Catalog Loading and RTL Hotfix/src/." app/src/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+        working-directory: app
+      - name: Create standalone Vite config
+        working-directory: app
+        run: |
+          cat > vite.config.ts <<'EOF'
+          import { defineConfig } from 'vite'
+          import react from '@vitejs/plugin-react'
+          import tailwindcss from '@tailwindcss/vite'
+          import path from 'node:path'
+          export default defineConfig({plugins:[react(),tailwindcss()],resolve:{alias:{'@':path.resolve(process.cwd(),'src')}}})
+          EOF
+      - run: pnpm build
+        working-directory: app
