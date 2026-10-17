@@ -39,7 +39,7 @@ export default function RequestDetailsPage() {
   const contact=useSitePage<{paymentInstructions?:string}>('contact')
   const load=useCallback(async()=>{try{setLoadingError(false);setData(await getDashboardRequest(runtime,id))}catch{setLoadingError(true)}},[runtime,id])
   useEffect(()=>{void load()},[load])
-  const total=useMemo(()=>Number(data?.request.final_total_jod??data?.request.estimated_subtotal??0),[data])
+  const total=useMemo(()=>Number(data?.request.final_total_jod || data?.request.estimated_subtotal || 0),[data])
   const mutate=async (operation:()=>Promise<DashboardRequestDetail>)=>{
     setSaving(true);setFeedback('')
     try {const next=await operation();setData(next);setFeedback('تم حفظ التغييرات بنجاح')}
@@ -97,7 +97,7 @@ export default function RequestDetailsPage() {
             {data.items.map(item=><div className="flex items-start justify-between gap-3 py-3" key={item.id}><div><strong className="text-sm">{item.product_name_snapshot}</strong><p className="mt-1 text-xs text-[var(--color-text-muted)]">{item.unit_label_snapshot} · ×{item.quantity}</p>
               {item.customization_label_snapshot?.length?<p className="mt-1 text-xs">{item.customization_label_snapshot.join('، ')}</p>:null}
               {item.notes?<p className="mt-1 text-xs text-[var(--color-text-muted)]">ملاحظة: {item.notes}</p>:null}</div>
-              <span dir="ltr" className="shrink-0 text-sm font-bold">{formatJod(Number(item.final_line_total_jod??0))}</span></div>)}
+              <span dir="ltr" className="shrink-0 text-sm font-bold">{formatJod(Number(item.final_line_total_jod || Math.max(0,Number(item.observed_base_price_jod||0)*Number(item.quantity||0)-Number(item.discount_amount_jod||0))))}</span></div>)}
           </div>
         </Section>
         <Section title="التوصيل / الاستلام"><div className="grid gap-4 sm:grid-cols-3"><Fact label="النوع" value={request.fulfillment_type==='DELIVERY'?'توصيل':'استلام'}/><Fact label="الموعد المطلوب" value={String(request.preferred_date||'—')+' · '+String(request.preferred_time||'')}/><Fact label="العنوان" value={request.delivery_address}/></div>{request.general_notes?<p className="mt-4 rounded-xl bg-[var(--color-bg)] p-3 text-sm">ملاحظات العميل: {request.general_notes}</p>:null}</Section>
