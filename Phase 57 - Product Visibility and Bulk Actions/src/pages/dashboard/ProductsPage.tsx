@@ -132,7 +132,7 @@ export default function ProductsPage(){
         </DashboardTable>
       </div>
     </>}
-    {checked.length>0?<div role="region" aria-label="الإجراءات الجماعية" className="sticky bottom-3 z-30 rounded-2xl border border-[#CEB08F] bg-[#FFF9F1] p-3 shadow-[0_8px_35px_rgba(49,31,16,.16)] sm:p-4">
+    {checked.length>0?<div role="region" aria-label="الإجراءات الجماعية" className="fixed inset-x-3 bottom-3 z-30 rounded-2xl lg:left-8 lg:right-[280px] border border-[#CEB08F] bg-[#FFF9F1] p-3 shadow-[0_8px_35px_rgba(49,31,16,.16)] sm:p-4">
       <div className="flex flex-wrap items-center gap-3">
         <strong className="whitespace-nowrap text-sm">{checked.length} منتج محدد</strong>
         <select aria-label="اختر الإجراء الجماعي" value={action} onChange={e=>setAction(e.target.value as BulkProductAction)} className="h-11 min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-white px-3 text-sm sm:max-w-[240px]">
