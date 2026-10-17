@@ -264,6 +264,10 @@ BEGIN
       invoice_issued_at=COALESCE(invoice_issued_at,now()),updated_at=now()
       WHERE id=p_request_id;
   ELSE
+    IF p_status='AWAITING_CONFIRMATION' AND v_old IN ('NEW','CONTACT_REQUIRED')
+      AND v_req.invoice_issued_at IS NULL THEN
+      PERFORM public.phase53_recalculate_discounts(p_request_id);
+    END IF;
     UPDATE public.requests SET status=p_status,updated_at=now() WHERE id=p_request_id;
   END IF;
   INSERT INTO public.request_activity(request_id,action_type,description,actor_id,metadata)
@@ -306,5 +310,24 @@ DROP TRIGGER IF EXISTS phase53_default_b2c_unit ON public.products;
 CREATE TRIGGER phase53_default_b2c_unit AFTER INSERT OR UPDATE OF status,availability,base_price_jod,channel
 ON public.products FOR EACH ROW EXECUTE FUNCTION public.phase53_ensure_b2c_unit();
 REVOKE ALL ON FUNCTION public.phase53_ensure_b2c_unit() FROM PUBLIC, anon, authenticated;
+
+
+-- Recalculate when a request is linked to a known customer, without repricing invoices.
+CREATE OR REPLACE FUNCTION public.dashboard_link_request_customer(p_request_id uuid,p_customer_id uuid)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,auth AS $
+DECLARE v_role text; v_req public.requests%rowtype; v_customer_type text;
+BEGIN
+  v_role:=public.dashboard_assert_role(ARRAY['SUPER_ADMIN','ADMIN']);
+  SELECT * INTO v_req FROM public.requests WHERE id=p_request_id FOR UPDATE;
+  SELECT customer_type INTO v_customer_type FROM public.customers WHERE id=p_customer_id;
+  IF v_req.id IS NULL OR v_customer_type IS NULL THEN RAISE EXCEPTION 'request or customer not found'; END IF;
+  IF v_req.customer_type<>v_customer_type THEN RAISE EXCEPTION 'customer type mismatch'; END IF;
+  UPDATE public.requests SET customer_id=p_customer_id,updated_at=now() WHERE id=p_request_id;
+  IF v_req.invoice_issued_at IS NULL THEN PERFORM public.phase53_recalculate_discounts(p_request_id); END IF;
+  INSERT INTO public.request_activity(request_id,action_type,description,actor_id,metadata)
+  VALUES(p_request_id,'CUSTOMER_LINKED','تم ربط الطلب بعميل موجود يدوياً',auth.uid(),
+    jsonb_build_object('customerId',p_customer_id,'role',v_role));
+  RETURN public.dashboard_get_request(p_request_id);
+END; $;
 
 COMMIT;
