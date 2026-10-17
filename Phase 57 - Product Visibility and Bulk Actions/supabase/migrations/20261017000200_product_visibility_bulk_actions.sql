@@ -68,7 +68,7 @@ BEGIN
       ) OR (
         (CASE WHEN v_action='CHANNEL' THEN v_channel ELSE v_product.channel END) IN ('B2B','BOTH')
         AND (
-          v_product.b2b_allow_custom_unit
+          coalesce(v_product.b2b_allow_custom_unit,false)
           OR EXISTS (
             SELECT 1 FROM public.product_units u
             WHERE u.product_id=v_id AND u.is_active AND u.availability<>'UNAVAILABLE'
