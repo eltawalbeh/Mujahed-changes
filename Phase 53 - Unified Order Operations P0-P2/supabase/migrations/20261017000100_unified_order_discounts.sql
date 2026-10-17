@@ -47,6 +47,10 @@ ALTER TABLE public.requests
     AND (order_discount_type <> 'PERCENT' OR order_discount_value <= 100)
   );
 
+-- Preserve historical discount display without changing old totals or invoice issuance.
+UPDATE public.requests SET discount_total_jod=discount_amount_jod
+WHERE discount_total_jod=0 AND discount_amount_jod>0;
+
 -- Called only by the protected dashboard functions below.
 -- It never changes previously issued invoices, customer snapshots, or old orders.
 CREATE OR REPLACE FUNCTION public.phase53_recalculate_discounts(p_request_id uuid)
