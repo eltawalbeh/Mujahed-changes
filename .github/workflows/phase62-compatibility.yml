@@ -1,0 +1,52 @@
+name: Phase 62 Bundle Compatibility
+on:
+  push:
+    branches: [phase-62-inline-invoice-discounts-social-domain]
+  pull_request:
+    paths:
+      - 'Phase 62 - Unified Invoice and Original Link OG/**'
+      - '.github/workflows/phase62-compatibility.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: eltawalbeh/ChefMujahed
+          path: app
+      - name: Overlay complete frontend and QA replacements
+        run: |
+          cp -R "Phase 62 - Unified Invoice and Original Link OG/src/." app/src/
+          cp -R "Phase 62 - Unified Invoice and Original Link OG/scripts/." app/scripts/
+          mkdir -p app/infra/og-product-routing
+          cp "Phase 62 - Unified Invoice and Original Link OG/infra/og-product-routing/cloudflare-worker.mjs" app/infra/og-product-routing/cloudflare-worker.mjs
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+        working-directory: app
+      - run: pnpm build
+        working-directory: app
+      - name: Test original-domain crawler routing in mocked environment
+        run: node scripts/qa-product-og-route.mjs
+        working-directory: app
+      - name: Prepare invoice fixtures
+        working-directory: app
+        run: |
+          pnpm dlx esbuild@0.25.12 src/domain/invoicePrint.ts --bundle --platform=node --format=cjs --outfile=/tmp/chefmujahed-invoice-print.cjs --alias:@=./src
+          node scripts/qa-invoice-print.cjs
+      - name: PDF regression checks
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          command -v pdfinfo >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          for kind in short business adjusted long; do
+            "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --no-pdf-header-footer \
+              --print-to-pdf="/tmp/cm-invoice-$kind.pdf" "file:///tmp/cm-invoice-$kind.html" >/tmp/print-qa.log 2>&1
+            pages="$(pdfinfo "/tmp/cm-invoice-$kind.pdf" | awk '/^Pages:/ {print $2}')"
+            echo "$kind: $pages pages"
+            if [[ "$kind" != "long" && "$pages" != "1" ]]; then exit 1; fi
+            if [[ "$kind" == "long" && "$pages" -lt 2 ]]; then exit 1; fi
+          done
