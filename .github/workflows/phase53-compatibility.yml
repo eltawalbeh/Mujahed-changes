@@ -1,0 +1,47 @@
+name: Phase 53 bundle compatibility
+on:
+  push:
+    branches:
+      - phase-53-unified-order-operations
+  pull_request:
+    paths:
+      - 'Phase 53 - Unified Order Operations P0-P2/**'
+      - '.github/workflows/phase53-compatibility.yml'
+jobs:
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release bundle
+        uses: actions/checkout@v4
+      - name: Check out Chef Mujahed baseline
+        uses: actions/checkout@v4
+        with:
+          repository: eltawalbeh/ChefMujahed
+          path: app
+      - name: Overlay phase 53 files on current application
+        run: cp -R "Phase 53 - Unified Order Operations P0-P2/src/." app/src/
+      - name: Prepare Node and pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install dependencies
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+      - name: Supply standalone Vite alias config
+        working-directory: app
+        run: |
+          cat > vite.config.ts <<'EOF'
+          import { defineConfig } from 'vite'
+          import react from '@vitejs/plugin-react'
+          import tailwindcss from '@tailwindcss/vite'
+          import path from 'node:path'
+          export default defineConfig({
+            plugins: [react(), tailwindcss()],
+            resolve: { alias: { '@': path.resolve(process.cwd(), 'src') } },
+          })
+          EOF
+      - name: Compile overlay
+        working-directory: app
+        run: pnpm build
