@@ -268,4 +268,39 @@ BEGIN
   RETURN public.dashboard_get_request(p_request_id);
 END; $$;
 
+
+-- Backfill ordinary B2C products that have a price but no purchasable unit.
+-- Existing variations are left untouched.
+INSERT INTO public.product_units(product_id,label_ar,channel,sort_order,is_active,price_jod,availability)
+SELECT p.id,'قطعة','B2C',0,true,p.base_price_jod,'AVAILABLE'
+FROM public.products p
+WHERE p.channel='B2C' AND p.status='ACTIVE' AND p.availability='AVAILABLE'
+  AND p.base_price_jod IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM public.product_units u
+    WHERE u.product_id=p.id AND u.is_active AND u.channel IN ('B2C','BOTH')
+      AND u.availability <> 'UNAVAILABLE'
+  );
+
+CREATE OR REPLACE FUNCTION public.phase53_ensure_b2c_unit()
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path=public AS $
+BEGIN
+  IF NEW.channel='B2C' AND NEW.status='ACTIVE' AND NEW.availability='AVAILABLE'
+    AND NEW.base_price_jod IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM public.product_units u
+      WHERE u.product_id=NEW.id AND u.is_active
+        AND u.channel IN ('B2C','BOTH') AND u.availability<>'UNAVAILABLE'
+    ) THEN
+    INSERT INTO public.product_units(product_id,label_ar,channel,sort_order,is_active,price_jod,availability)
+    VALUES(NEW.id,'قطعة','B2C',0,true,NEW.base_price_jod,'AVAILABLE');
+  END IF;
+  RETURN NEW;
+END;
+$;
+DROP TRIGGER IF EXISTS phase53_default_b2c_unit ON public.products;
+CREATE TRIGGER phase53_default_b2c_unit AFTER INSERT OR UPDATE OF status,availability,base_price_jod,channel
+ON public.products FOR EACH ROW EXECUTE FUNCTION public.phase53_ensure_b2c_unit();
+REVOKE ALL ON FUNCTION public.phase53_ensure_b2c_unit() FROM PUBLIC, anon, authenticated;
+
 COMMIT;
