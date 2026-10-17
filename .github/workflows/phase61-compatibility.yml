@@ -1,0 +1,39 @@
+name: Phase 61 Financial and OG Bundle QA
+on:
+  push:
+    branches: [phase-61-postinvoice-adjustments-social-og]
+  pull_request:
+    paths:
+      - 'Phase 61 - Post Invoice Discounts and Product Social Images/**'
+      - '.github/workflows/phase61-compatibility.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: eltawalbeh/ChefMujahed
+          path: app
+      - name: Apply Phase 61 files to original build
+        run: |
+          cp -R "Phase 61 - Post Invoice Discounts and Product Social Images/src/." app/src/
+          mkdir -p app/supabase/functions/product-share
+          cp "Phase 61 - Post Invoice Discounts and Product Social Images/supabase/functions/product-share/index.ts" app/supabase/functions/product-share/index.ts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+        working-directory: app
+      - run: pnpm build
+        working-directory: app
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check app/supabase/functions/product-share/index.ts
+      - name: Public OG endpoint smoke
+        run: |
+          curl --retry 3 --fail --silent --show-error 'https://hqvxhhhwzhefydvwlpje.supabase.co/functions/v1/product-share?slug=cm-050&channel=B2C' -o /tmp/cm-share.html
+          grep -q 'property="og:image"' /tmp/cm-share.html
+          grep -q 'Pumpkin Donut' /tmp/cm-share.html
