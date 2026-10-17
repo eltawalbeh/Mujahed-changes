@@ -1,0 +1,52 @@
+name: Phase 60 pricing and invoice bundle validation
+on:
+  push:
+    branches: [phase-60-discounts-invoice-qa]
+  pull_request:
+    paths:
+      - 'Phase 60 - Pricing Discounts and Invoice QA/**'
+      - '.github/workflows/phase60-compatibility.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: eltawalbeh/ChefMujahed
+          path: app
+      - name: Overlay Phase 60 replacements
+        run: |
+          cp -R "Phase 60 - Pricing Discounts and Invoice QA/src/." app/src/
+          mkdir -p app/scripts
+          cp -R "Phase 60 - Pricing Discounts and Invoice QA/scripts/." app/scripts/
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+        working-directory: app
+      - name: Frontend production build
+        run: pnpm build
+        working-directory: app
+      - name: Compile invoice formatter
+        working-directory: app
+        run: pnpm dlx esbuild@0.25.12 src/domain/invoicePrint.ts --bundle --platform=node --format=cjs --outfile=/tmp/chefmujahed-invoice-print.cjs --alias:@=./src
+      - name: Generate print QA fixtures
+        working-directory: app
+        run: node scripts/qa-invoice-print.cjs
+      - name: Assert A4 page counts and nonblank last page
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          command -v pdfinfo >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+          for kind in short business long; do
+            "$CHROME" --headless --no-sandbox --disable-dev-shm-usage --disable-gpu --no-pdf-header-footer \
+              --print-to-pdf="/tmp/cm-invoice-$kind.pdf" "file:///tmp/cm-invoice-$kind.html" >/tmp/chrome-print.log 2>&1
+            pages="$(pdfinfo "/tmp/cm-invoice-$kind.pdf" | awk '/^Pages:/ {print $2}')"
+            echo "Invoice $kind => $pages A4 pages"
+            if [[ "$kind" != "long" && "$pages" -ne 1 ]]; then echo "Extra page for short invoice" >&2; exit 1; fi
+            if [[ "$kind" == "long" && "$pages" -lt 2 ]]; then echo "Long invoice did not paginate" >&2; exit 1; fi
+            pdftotext -f "$pages" -l "$pages" "/tmp/cm-invoice-$kind.pdf" - | grep -q 'INV-QA-001' || { echo "Last page blank or missing footer" >&2; exit 1; }
+          done
