@@ -1,0 +1,37 @@
+name: Phase 56 dashboard design-system bundle check
+on:
+  push:
+    branches:
+      - phase-56-dashboard-design-system
+  pull_request:
+    paths:
+      - 'Phase 56 - Dashboard Action Design System/**'
+      - '.github/workflows/phase56-compatibility.yml'
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out patches
+        uses: actions/checkout@v4
+      - name: Check out app
+        uses: actions/checkout@v4
+        with:
+          repository: eltawalbeh/ChefMujahed
+          path: app
+      - name: Apply Phase 56 replacement files
+        run: cp -R "Phase 56 - Dashboard Action Design System/src/." app/src/
+      - name: Prepare Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - name: Install
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+      - name: TypeScript audit (existing baseline debt)
+        working-directory: app
+        continue-on-error: true
+        run: pnpm exec tsc --noEmit
+      - name: Production build
+        working-directory: app
+        run: pnpm build
