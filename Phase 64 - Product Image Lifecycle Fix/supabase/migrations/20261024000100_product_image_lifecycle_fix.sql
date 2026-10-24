@@ -59,5 +59,4 @@ begin
   end if;
   return public.dashboard_get_product(p_product_id);
 end;
-$function$
-
+$function$;
