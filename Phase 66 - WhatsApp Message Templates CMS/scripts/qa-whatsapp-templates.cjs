@@ -1,0 +1,31 @@
+// Run: node scripts/qa-whatsapp-templates.cjs
+// Static checks only. Verify the published Figma Make app manually after sync.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict')
+const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8')
+const source=read('src/lib/whatsappTemplates.ts')
+const prefix='export const defaultWhatsAppTemplates = '
+const start=source.indexOf(prefix)+prefix.length
+assert.ok(start>=prefix.length,'WhatsApp defaults source must exist')
+const end=source.indexOf(' as const',start)
+const templates=JSON.parse(source.slice(start,end))
+assert.equal(Object.keys(templates).length,11)
+const vars={customerName:'ايناس عادل بني يونس',reference:'CM-20261024-00063',totalJod:'3.500',paymentInstructions:'كليك (بنك الاتحاد)\n0798265415'}
+const payment=templates.payment_request.replace(/\{\{([^{}]+)\}\}/g,(_,name)=>vars[name]??'')
+assert.ok(payment.includes('طريقة الدفع: كليك (بنك الاتحاد)\n0798265415'))
+assert.ok(payment.includes('CM-20261024-00063'))
+assert.ok(payment.includes('3.500 JOD'))
+assert.match(source,/body\.matchAll\(\/\\\\\{\\\\\{/)
+const wh=read('src/lib/whatsapp.ts')
+assert.match(wh,/renderWhatsAppTemplate\('payment_request'/)
+assert.match(wh,/renderWhatsAppTemplate\(key/)
+const cms=read('src/pages/dashboard/ContentManagementPage.tsx')
+assert.match(cms,/whatsapp-templates/)
+assert.match(cms,/validateWhatsAppTemplate\(key/)
+assert.match(cms,/previewWhatsAppTemplate/)
+const request=read('src/pages/dashboard/RequestDetailsPage.tsx')
+assert.match(request,/templates:whatsAppTemplates/)
+const b2c=read('src/pages/b2c/SubmittedBoundaryPage.tsx')
+const b2b=read('src/pages/b2b/B2BSuccessPage.tsx')
+assert.match(b2c,/templates:templates\?\?defaultWhatsAppTemplates/)
+assert.match(b2b,/templates:templates\?\?defaultWhatsAppTemplates/)
+console.log('Phase 66 WhatsApp CMS static checks passed. Manually test published WhatsApp flows.')
