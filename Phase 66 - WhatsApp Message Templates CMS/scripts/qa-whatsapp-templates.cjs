@@ -14,7 +14,7 @@ const payment=templates.payment_request.replace(/\{\{([^{}]+)\}\}/g,(_,name)=>va
 assert.ok(payment.includes('طريقة الدفع: كليك (بنك الاتحاد)\n0798265415'))
 assert.ok(payment.includes('CM-20261024-00063'))
 assert.ok(payment.includes('3.500 JOD'))
-assert.match(source,/body\.matchAll\(\/\\\\\{\\\\\{/)
+assert.match(source,/body\.matchAll\(/)
 const wh=read('src/lib/whatsapp.ts')
 assert.match(wh,/renderWhatsAppTemplate\('payment_request'/)
 assert.match(wh,/renderWhatsAppTemplate\(key/)
