@@ -14,12 +14,12 @@ The production RPC `dashboard_update_product_basic` inserts an image row on *eve
 1. `src/pages/dashboard/ProductEditPage.tsx`
 2. `src/components/dashboard/ImageUploadField.tsx`
 3. `src/lib/mediaUpload.ts`
-4. `supabase/functions/server/index.tsx`
+4. `supabase/functions/make-server-146e5e37/index.ts` — **preferred deploy source** (merged against verified live Supabase v3), also mirrored in `supabase/functions/server/index.tsx`
 5. `supabase/migrations/20261024000100_product_image_lifecycle_fix.sql`
 6. `scripts/qa-image-lifecycle.cjs`
 
 ## Deployment order
-1. Review current deployed `make-server-146e5e37` Edge Function before deployment: do **not** replace a newer deployed Edge Function with this older repository copy. Merge just the new endpoint into deployed source if necessary.
+1. Verified deployed `make-server-146e5e37` Edge Function was version **3** during build. This bundle now includes the **live v3 source plus the cleanup endpoint** (retaining its `updateBucket` behavior). Re-check deployed version immediately before applying; if it has changed, merge the endpoint into the new live source rather than overwriting it.
 2. Apply Supabase SQL migration (schema/RPC replacement) using Supabase migration tooling. Applying the migration deletes **no existing images**.
 3. Deploy media cleanup endpoint; test authenticated access and attempts to clean a shared URL/other product folder.
 4. Merge three Figma Make frontend files, publish.
