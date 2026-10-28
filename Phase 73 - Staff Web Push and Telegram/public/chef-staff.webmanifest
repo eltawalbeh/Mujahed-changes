@@ -1,0 +1,19 @@
+{
+  "id": "/dashboard/",
+  "name": "Chef Mujahed Staff",
+  "short_name": "Chef Staff",
+  "description": "إدارة طلبات الشيف مجاهد وإشعارات الموظفين",
+  "start_url": "/dashboard/notifications",
+  "scope": "/dashboard/",
+  "display": "standalone",
+  "background_color": "#FFFDFC",
+  "theme_color": "#2E1E17",
+  "icons": [
+    {
+      "src": "/chef-staff-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
