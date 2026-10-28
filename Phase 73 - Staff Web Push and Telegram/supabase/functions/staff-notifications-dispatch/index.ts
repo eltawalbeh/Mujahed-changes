@@ -1,12 +1,13 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
 const db=createClient(Deno.env.get("SUPABASE_URL")||"",Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"");
-const fixedEquals=(a:string,b:string)=>{if(a.length!==b.length)return false;let x=0;for(let i=0;i<a.length;i++)x|=a.charCodeAt(i)^b.charCodeAt(i);return x===0};
 const titles:Record<string,string>={NEW:"طلب جديد",AWAITING_CONFIRMATION:"طلب بانتظار التأكيد",APPROVED:"تمت الموافقة على طلب",PREPARING:"طلب قيد التحضير",READY:"طلب جاهز",OUT_FOR_DELIVERY:"طلب خرج للتوصيل",COMPLETED:"طلب مكتمل",CANCELLED:"طلب ملغى"};
 Deno.serve(async(req)=>{
  if(req.method!=="POST")return new Response("Method not allowed",{status:405});
- const key=Deno.env.get("STAFF_NOTIFICATION_WORKER_SECRET")||"";
- if(!key||!fixedEquals(key,req.headers.get("x-staff-dispatch-secret")||""))return new Response("Unauthorized",{status:401});
+ const authCandidate=req.headers.get("x-staff-dispatch-secret")||"";
+ if(!/^[0-9a-f]{64}$/.test(authCandidate))return new Response("Unauthorized",{status:401});
+ const {data:authorized,error:authError}=await db.rpc("staff_notification_verify_dispatch_secret",{p_candidate:authCandidate});
+ if(authError||authorized!==true)return new Response("Unauthorized",{status:401});
  const tgToken=Deno.env.get("STAFF_TELEGRAM_BOT_TOKEN")||"";
  const publicKey=Deno.env.get("STAFF_VAPID_PUBLIC_KEY")||"";
  const privateKey=Deno.env.get("STAFF_VAPID_PRIVATE_KEY")||"";
