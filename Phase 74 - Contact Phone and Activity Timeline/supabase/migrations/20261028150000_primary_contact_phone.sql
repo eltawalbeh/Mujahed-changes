@@ -34,11 +34,11 @@ BEGIN
     WHERE id=v_req.customer_id;
     IF NOT FOUND THEN RAISE EXCEPTION 'ملف العميل غير موجود.'; END IF;
     UPDATE public.requests
-    SET contact_phone_override=NULL, whatsapp_phone_override=NULL, updated_at=now()
+    SET contact_phone_override=NULL, updated_at=now()
     WHERE id=p_request_id;
   ELSE
     UPDATE public.requests
-    SET contact_phone_override=v_phone, whatsapp_phone_override=NULL, updated_at=now()
+    SET contact_phone_override=v_phone, updated_at=now()
     WHERE id=p_request_id;
   END IF;
 
