@@ -1,6 +1,6 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 const db=createClient(Deno.env.get("SUPABASE_URL")||"",Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")||"");
-const cors=(r:Request)=>({"Access-Control-Allow-Origin":/^(https:\/\/(www\.)?chefmujahed\.com|https:\/\/[a-z0-9.-]+\.figma\.site|http:\/\/localhost:\d+)$/.test(r.headers.get("origin")||"")?(r.headers.get("origin")||""):"https://chefmujahed.com","Access-Control-Allow-Headers":"authorization,apikey,content-type","Access-Control-Allow-Methods":"POST,OPTIONS","Vary":"Origin"});
+const cors=(r:Request)=>({"Access-Control-Allow-Origin":/^(https:\/\/(www\.)?chefmujahed\.com|https:\/\/[a-z0-9.-]+\.figma\.site|http:\/\/localhost:\d+)$/.test(r.headers.get("origin")||"")?(r.headers.get("origin")||""):"https://chefmujahed.com","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version","Access-Control-Allow-Methods":"POST,OPTIONS","Vary":"Origin"});
 const reply=(r:Request,x:unknown,status=200)=>new Response(JSON.stringify(x),{status,headers:{...cors(r),"content-type":"application/json","cache-control":"no-store"}});
 const sha=async(s:string)=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))).map(x=>x.toString(16).padStart(2,"0")).join("");
 Deno.serve(async(req)=>{
